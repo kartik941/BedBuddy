@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* General Styles */
+        body {
+             background: linear-gradient(#e0f7fa, #98b4b7);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #008c8c;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        /* Form Container */
+        .box {
+            background-color: #ffffff;
+            width: 350px;
+            margin: auto;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        /* Input Fields */
+        input {
+            margin: 15px 0;
+            padding: 12px 15px;
+            width: 100%;
+            border-radius: 8px;
+            background: none;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box; /* Ensures padding is included in the width */
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            border: 1px solid #008c8c;
+            color: #333;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #004d4d;
+        }
+
+        input[type="submit"] {
+            border: none;
+            color: #ffffff;
+            background-color: #008c8c;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            width: 100%; /* Match width to other inputs */
+        }
+        input[type="submit"]:hover {
+            background-color: #a8cccc;
+            color:#004d4d ;
+        }
+        .navbar {
+    display: flex;
+    justify-content: center; /* Center the navbar */
+    align-items: center;
+    background-color: #00796b; /* Dark teal background */
+    padding: 0.5em 0; /* Reduced padding to reduce height */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+        .navbar-list {
+            display: flex;
+            gap: 16px;
+            list-style-type: none;
+        }
+
+        .navbar-item {
+            padding: 8px 16px;
+            border-radius: 5px;
+        }
+
+        .navbar-link {
+            color: white;
+            text-transform: capitalize;
+            font-weight: 500;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 8px 16px;
+            display: block;
+        }
+
+        .navbar-link:hover {
+            background-color: #004d4d; /* Darker shade of teal for hover effect */
+            border-radius: 5px;
+            color: #e0f7fa; /* Light cyan color on hover */
+        }
+
+        a {
+            color: #00796b;
+        }
+
+        a:hover {
+            color: aquamarine;
+        }
+
+        /* Footer (Optional) */
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="navbar-list">
+            <li class="navbar-item">
+                <a href="/" class="navbar-link">Home</a>
+            </li>
+            <li class="navbar-item">
+                <a href="#" class="navbar-link">Doctors</a>
+            </li>
+            <li class="navbar-item">
+                <a href="#" class="navbar-link">Services</a>
+            </li>
+            <li class="navbar-item">
+                <a href="#" class="navbar-link">Blog</a>
+            </li>
+            <li class="navbar-item">
+                <a href="/register" class="navbar-link">register</a>
+            </li>
+        </ul>
+    </nav>
+    <form action="/login" id="loginForm" method="post" class="box">
+        <h1>Hospital Login</h1>
+        <input type="text" placeholder="Username" name="uname" required>
+        <input type="password" placeholder="Password" name="upwd" required>
+        <input type="submit" value="Login">
+        <div class="footer">For authorized personnel only</div>
+    </form>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent form from refreshing the page
+
+            // Collect form data
+            const formData = new FormData(event.target);
+            const formObj = Object.fromEntries(formData.entries());
+
+            // Send POST request to the server
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(formObj).toString()
+            });
+
+            const result = await response.json();
+
+            // Show alert based on server response
+            if (result.success) {
+                alert(result.message); // Show success message
+                window.location.href = '/'; // Redirect after successful login
+            } else {
+                alert(result.message); // Show error message
+            }
+        });
+    </script>
+</body>
+</html>
