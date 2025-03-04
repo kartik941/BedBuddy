@@ -12,7 +12,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 const usersFile = path.join(__dirname, 'user.json');
 
+const routes =require('./routes/LOGroutes');
 
+app.use('/',routes);
 // handle the errors
 function handleError(res, errorCode, message) {
     res.statusCode = errorCode;
@@ -66,55 +68,6 @@ function serveStaticFile(filePath, res) {
 }
 
 
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-// Handle user login (POST request)
-app.post('/login', (req, res) => {
-    const { uname, upwd } = req.body;
-
-    // Read users from JSON file
-    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
-
-    // Check if user exists
-    const user = users.find(user => user.uname === uname);
-
-    if (!user || user.upwd !== upwd) {
-        return res.status(400).json({ success: false, message: 'Invalid username or password.' });
-    }
-
-    res.json({ success: true, message: 'Login successful!' });
-});
-
-// Serve register.html when visiting /register
-app.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'register.html'));
-});
-
-// Handle user registration (POST request)
-app.post('/register', (req, res) => {
-    const { uname, upwd } = req.body;
-
-    if (!uname || !upwd) {
-        return res.status(400).json({ success: false, message: 'Username and password are required.' });
-    }
-
-    // Read users from JSON file
-    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
-
-    // Check if username already exists
-    if (users.find(user => user.uname === uname)) {
-        return res.status(400).json({ success: false, message: 'Username already exists.' });
-    }
-
-    // Add new user
-    users.push({ uname, upwd });
-    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-
-    //res.status(201).json({ success: true, message: 'Registration successful!' });
-    res.redirect('/login')
-});
 
 // Catch-all route for 404 errors
 app.use((req, res) => {
