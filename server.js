@@ -15,6 +15,19 @@ const usersFile = path.join(__dirname, 'user.json');
 const routes =require('./routes/LOGroutes');
 
 app.use('/',routes);
+
+const morgan = require('morgan');
+app.use(morgan('combined')); // Logs detailed request info
+
+const helmet = require('helmet');
+app.use(helmet()); // Applies default security headers
+
+const cors = require('cors');
+app.use(cors()); // Enables CORS for all routes
+
+
+
+
 // handle the errors
 function handleError(res, errorCode, message) {
     res.statusCode = errorCode;
