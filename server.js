@@ -1,7 +1,17 @@
-const http = require('http');
-// const qs = require('querystring');
+const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
+
+const app = express();
+// Middleware to parse JSON data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
+const usersFile = path.join(__dirname, 'user.json');
+
 
 // handle the errors
 function handleError(res, errorCode, message) {
@@ -56,81 +66,63 @@ function serveStaticFile(filePath, res) {
 }
 
 
-// Create HTTP server
-const server = http.createServer((req, res) => {
-    const publicDir = path.join(__dirname, 'public');
-        const urlPath = req.url === '/' ? '/index.html':req.url === '/login' ? '/login.html':req.url === '/register' ? '/register.html' : req.url;
-    // const publicDir = path.join(__dirname, 'public');
-    if (req.url.startsWith('/images/')) {
-            // Dynamically serve image files
-            const filePath = path.join(publicDir, req.url);
-            serveStaticFile(filePath, res);
-        } else {
-            const filePath = path.join(publicDir, urlPath);
-    
-    
-    if (req.method === 'GET') {
-        // Serve the file based on the URL
-        serveStaticFile(filePath, res);
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
 
-        } else if (req.method === 'POST' && req.url === '/register') {
-            parseBody(req, (body) => {
-                const uname = body.get('uname');
-                const upwd = body.get('upwd');
-                
-                // Read users from the users.json file
-                const users = JSON.parse(fs.readFileSync('C:/Users/kk673/OneDrive/Desktop/be project/user.json', 'utf-8'));
-                
-                // Check if the uname already exists
-                if (users.find(user => user.uname === uname)) {
-                    res.writeHead(400, { 'Content-Type': 'text/plain' });
-                    res.end('username already exists.');
-                    return;
-                }
-    
-                // Add the new user (uname and upwd in plain text)
-                users.push({ uname, upwd });
-                fs.writeFileSync('C:/Users/kk673/OneDrive/Desktop/be project/user.json', JSON.stringify(users, null, 2));
-                
-                res.writeHead(302, { 'Location': '/login' });
-                res.end();
-            });
-        }
-    
-        // Handle login (POST to /login)
-        else if (req.method === 'POST' && req.url === '/login') {
-            parseBody(req, (body) => {
-                const uname = body.get('uname');
-                const upwd = body.get('upwd');
-                
-                // Read users from the users.json file
-                const users = JSON.parse(fs.readFileSync('C:/Users/kk673/OneDrive/Desktop/be project/user.json', 'utf-8'));
-                
-                // Check if the uname exists
-                const user = users.find(user => user.uname === uname);
-                
-                // If uname does not exist or upwd is incorrect
-                if (!user || user.upwd !== upwd) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, message: 'Invalid username or password.' }));
-                    return;
-                }
-    
-                // Successful login
-                // res.writeHead(200, { 'Content-Type': 'text/plain' });
-                // res.end('Login successful!');
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true, message: 'Login successful!' }));
-            });
-    } else {
-        handleError(res, 404, 'Route not found');
+// Handle user login (POST request)
+app.post('/login', (req, res) => {
+    const { uname, upwd } = req.body;
+
+    // Read users from JSON file
+    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+
+    // Check if user exists
+    const user = users.find(user => user.uname === uname);
+
+    if (!user || user.upwd !== upwd) {
+        return res.status(400).json({ success: false, message: 'Invalid username or password.' });
     }
-}});
 
+    res.json({ success: true, message: 'Login successful!' });
+});
 
+// Serve register.html when visiting /register
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
+
+// Handle user registration (POST request)
+app.post('/register', (req, res) => {
+    const { uname, upwd } = req.body;
+
+    if (!uname || !upwd) {
+        return res.status(400).json({ success: false, message: 'Username and password are required.' });
+    }
+
+    // Read users from JSON file
+    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+
+    // Check if username already exists
+    if (users.find(user => user.uname === uname)) {
+        return res.status(400).json({ success: false, message: 'Username already exists.' });
+    }
+
+    // Add new user
+    users.push({ uname, upwd });
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+    //res.status(201).json({ success: true, message: 'Registration successful!' });
+    res.redirect('/login')
+});
+
+// Catch-all route for 404 errors
+app.use((req, res) => {
+    res.status(404).json({ success: false, message: 'Route not found' });
+});
 
 // Start the server on port 8081
 const PORT = 8080;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });
